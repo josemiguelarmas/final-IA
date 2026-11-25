@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    accent-color: #0047BA;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    /* Pulgar vs. pista >= 3:1 (WCAG 1.4.11) */
+    --scrollbar-thumb: #7b8798;
+    --scrollbar-track: #eef1f5;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-sm text-ink antialiased;
+    margin: 0;
+    height: 100dvh;
+    /* La app es un cuadro fijo; cada panel hace su propio scroll */
+    overflow: hidden;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: #cfe0fa;
+    color: #0c2340;
+  }
+
+  :focus-visible {
+    outline: 2px solid #0047ba;
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #66717f;
+    opacity: 1;
+  }
+}
+
+/* Respaldo para navegadores sin scrollbar-color */
+@supports not (scrollbar-color: auto) {
+  * {
+    scrollbar-width: auto;
+  }
+  *::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+  }
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+}
+
+@layer components {
+  /* Botones: respuesta táctil al presionar, solo propiedades concretas */
+  .btn {
+    @apply inline-flex min-h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-[13px] font-medium;
+    transition: transform 160ms var(--ease-out), background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  .btn-primary {
+    @apply bg-brand text-white;
+  }
+  .btn-secondary {
+    @apply border border-rule-strong bg-paper text-ink;
+  }
+  .btn-quiet {
+    @apply text-ink-soft;
+  }
+  .btn-quiet:hover {
+    @apply bg-canvas text-ink;
+  }
+  .field {
+    @apply w-full rounded-md border border-rule-strong bg-paper px-3 py-2 text-sm text-ink;
+  }
+  .field:focus-visible {
+    outline-offset: 0;
+    border-color: #0047ba;
+  }
+  .section-title {
+    @apply text-sm font-semibold text-ink;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    @apply bg-brand-dark;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    @apply border-ink-muted bg-canvas;
+  }
+}
+
+/* ---------- Diálogo nativo (<dialog>) ---------- */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  background: rgb(12 35 64 / 0.55);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+dialog.sheet {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  max-width: 100vw;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  transition-property: opacity, transform, overlay, display;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+dialog.sheet[open] {
+  opacity: 1;
+  transform: none;
+}
+
+dialog.sheet::backdrop {
+  opacity: 0;
+  transition-property: opacity, overlay, display;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+dialog.sheet[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog.sheet[open] {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  dialog.sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* ---------- Aviso (popover manual) ---------- */
+.toast {
+  position: fixed;
+  inset: auto 1rem 1rem auto;
+  margin: 0;
+  max-width: min(28rem, calc(100vw - 2rem));
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  overflow: visible;
+  opacity: 0;
+  transform: translateY(8px);
+  transition-property: opacity, transform, overlay, display;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+.toast:is(:popover-open, .\:popover-open) {
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .toast:popover-open {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---------- Lector ---------- */
+.reader-enter {
+  animation: reader-enter 180ms var(--ease-out) both;
+}
+
+@keyframes reader-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.sr-only-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.sheet,
+  .toast {
+    transform: none;
+    transition-duration: 1ms;
+  }
+  .reader-enter {
+    animation: reader-fade 150ms ease both;
+  }
+  @keyframes reader-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}

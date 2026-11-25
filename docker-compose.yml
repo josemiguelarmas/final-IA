@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  # Aplicación Principal (Backend FastAPI + Frontend React Integrado)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: consultorio_mantis_ai_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=Consultorio Juridico Mantis AI MVP
+      - DEBUG=false
+      - DATABASE_URL=sqlite:////app/data/consultorio_juridico.db
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2:3b
+      - FORCE_RULE_ENGINE=false
+      - MANTIS_ADAPTER_TYPE=mock
+      - MANTIS_BASE_URL=https://www.icesi.edu.co/consultorio-juridico-app
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      - ollama
+
+  # Motor de Inteligencia Artificial Local (Ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: consultorio_mantis_ai_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    # Para aceleración GPU en servidores Linux con NVIDIA:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  app_data:
+  ollama_models:
